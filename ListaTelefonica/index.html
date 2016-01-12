@@ -25,8 +25,9 @@
 }
 </style>
 <script src="lib/angular/angular.min.js"></script>
+<script src="lib/angular/angular-messages.min.js"></script>
 <script>
-angular.module("listaTelefonica", []);	
+angular.module("listaTelefonica", ["ngMessages"]);	
 angular.module("listaTelefonica").controller("listaTelefonicaCtrl", function($scope){
 	$scope.app="Lista Telefonica";	
 	$scope.contatos = [
@@ -45,6 +46,7 @@ angular.module("listaTelefonica").controller("listaTelefonicaCtrl", function($sc
 		//Obs.: Não leia a variável $scope
 		$scope.contatos.push(angular.copy(contato));
 		delete $scope.contato;
+		$scope.contatoForm.$setPristine();
 	};
 	$scope.apagarContatos=function(contatos){
 		//Busca os contatos que nao foram selecionados
@@ -78,14 +80,25 @@ angular.module("listaTelefonica").controller("listaTelefonicaCtrl", function($sc
 				<td>{{contato.operadoraCodigo}}</td>
 			</tr>
 		</table>
-		<hr/>
-		<input class="form-control" type="text" ng-model="contato.nome" placeholder="Nome"/>
-		<input class="form-control" type="text" ng-model="contato.telefone" placeholder="Telefone"/>
-		<select class="form-control" ng-model="contato.operadoraCodigo" ng-options="operadora.codigo as operadora.nome group by operadora.categoria for operadora in operadoras">
-			<option value="">Selecione uma operadora</option>
-		</select>
-		<button class="btn btn-primary btn-block" ng-click="adicionarContato(contato)" ng-disabled="!contato.nome || !contato.telefone || !contato.operadoraCodigo">Adicionar Contato</button>
-		<button class="btn btn-danger btn-block" ng-click="apagarContatos(contatos)" ng-show="isContatosSelecionados(contatos)">Apagar Contato</button>
+		<form name="contatoForm">
+			<input class="form-control" type="text" name="nome" ng-model="contato.nome" placeholder="Nome" ng-required="true" ng-minlength="3"/>
+			<input class="form-control" type="text" name="telefone" ng-model="contato.telefone" placeholder="Telefone" ng-required="true" ng-pattern="/^\d{4,5}-\d{4}$/"/>
+			<select class="form-control" ng-model="contato.operadoraCodigo" ng-options="operadora.codigo as operadora.nome group by operadora.categoria for operadora in operadoras">
+				<option value="">Selecione uma operadora</option>
+			</select>
+		</form>
+		<div ng-messages="contatoForm.nome.$error" ng-show="contatoForm.nome.$invalid && contatoForm.nome.$dirty" class="alert alert-danger">
+			<span ng-message="required">Por favor, preencha o campo nome!</span>
+			<span ng-message="minlength">O campo nome deve ter no minimo 3 caracteres.</span>
+		</div>
+		
+		<div ng-messages="contatoForm.telefone.$error" ng-show="contatoForm.telefone.$invalid && contatoForm.telefone.$dirty" class="alert alert-danger">
+			<span ng-message="required">Por favor, preencha o campo telefone!</span>
+			<span ng-message="pattern">O campo telefone deve ter o formato DDDDD-DDDD</span>
+		</div>
+
+		<button class="btn btn-primary btn-block" ng-click="adicionarContato(contato)" ng-disabled="contatoForm.$invalid">Adicionar Contato</button>
+		<button class="btn btn-danger btn-block" ng-click="apagarContatos(contatos)" ng-hide="!isContatosSelecionados(contatos)">Apagar Contato</button>
 	</div>
 	<div ng-include="'footer.html'"></div>
 </body>
